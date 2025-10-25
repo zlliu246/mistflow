@@ -1,6 +1,4 @@
-import sys
 from typing import Callable, Any, TypedDict, Sequence, Optional
-from collections import Counter
 import logging
 
 from .runners.task_runner import TaskRunner

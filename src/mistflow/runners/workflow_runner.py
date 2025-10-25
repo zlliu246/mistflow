@@ -24,6 +24,5 @@ class WorkflowRunner:
         pass
 
     def run(self) -> None:
-        inp = self.models_module.Input.model_validate_json(self.input_json)
-        logger.info(f"Workflow Input: {inp.json()}")
+        inp: "Input" = self.models_module.Input.model_validate_json(self.input_json)
         self.main_module.workflow.run(inp)
