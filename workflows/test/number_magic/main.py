@@ -1,7 +1,7 @@
 from mistflow.workflow import Workflow, Stage
 
 workflow = Workflow(
-    name="test_workflow",
+    name="number_magic",
     start_stage="square_number",
 )
 

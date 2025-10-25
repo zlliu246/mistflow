@@ -31,7 +31,7 @@ class Stage:
         if len(self.next_stages) == 1:
             self.get_next_stage = lambda *args: self.next_stages[0]
         else:
-            assert self.get_next_stage is not None, "If there are more than 1 posisble next stages, the function 'get_next_stage' must be provided"
+            assert get_next_stage is not None, "If there are more than 1 posisble next stages, the function 'get_next_stage' must be provided"
             self.get_next_stage = staticmethod(get_next_stage)
 
     def __str__(self) -> str:
@@ -71,8 +71,10 @@ class Workflow:
             current_stage = self.stage_id_to_stage_map[current_stage_id]
 
             task_runner = TaskRunner(current_stage.task_path)
-            inp = current_stage.get_stage_input(self.context)
-            out = task_runner.run(input_dict=inp)
+            inp: dict = current_stage.get_stage_input(self.context)
+            self.context["stage_input"][current_stage_id] = inp
+
+            out: "Output" = task_runner.run(input_dict=inp)
             
             self.context["stage_output"][current_stage_id] = out.dict()
             next_stage_id = current_stage.get_next_stage(self.context)
