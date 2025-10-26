@@ -1,5 +1,6 @@
-from typing import Callable, Any, TypedDict, Sequence, Optional
+from typing import Callable, Any, TypedDict, Sequence, Optional, NamedTuple
 import logging
+from dataclasses import dataclass
 
 from .runners.task_runner import TaskRunner
 
@@ -11,6 +12,12 @@ class Context(TypedDict):
     stage_input: dict[str, Any]
     stage_output: dict[str, Any]
 
+@dataclass
+class Transition:
+    to_stage: str
+    condition: Optional[Callable[[Context], bool]] = None
+    
+
 class Stage:
     def __init__(
         self,
@@ -18,19 +25,30 @@ class Stage:
         description: str,
         task_path: str,
         get_stage_input: Callable,
-        next_stages: Sequence[str],
-        get_next_stage: Optional[Callable] = None,
+        next_stage: Optional[str] = None,
+        next_stages: Optional[Sequence[Transition]] = None,
     ) -> None:
         self.stage_id = stage_id
         self.description = description
         self.task_path = task_path
         self.get_stage_input = staticmethod(get_stage_input)
+
+        self.next_stage = next_stage
         self.next_stages = next_stages
-        if len(self.next_stages) == 1:
-            self.get_next_stage = lambda *args: self.next_stages[0]
+
+        if not next_stage and not next_stages:
+           raise AssertionError("Either 'next_stage' or 'next_stages' must be provided") 
+        elif next_stage:
+            get_next_stage = lambda *args: next_stage
         else:
-            assert get_next_stage is not None, "If there are more than 1 posisble next stages, the function 'get_next_stage' must be provided"
-            self.get_next_stage = staticmethod(get_next_stage)
+            def get_next_stage(context: Context) -> str:
+                *transitions, default_transition = next_stages
+                for transition in transitions:
+                    if transition.condition(context):
+                        return transition.to_stage
+                return default_transition.to_stage
+
+        self.get_next_stage = get_next_stage
 
     def __str__(self) -> str:
         return f"Stage({self.stage_id!r} => {self.next_stages})"
@@ -39,7 +57,7 @@ class Stage:
         return self.__str__()
 
 class Workflow:
-    def __init__(self, name: str, start_stage: str) -> None:
+    def __init__(self, name: str, start_stage: str, description: str = "") -> None:
         self.wf_name = name
         self.start_stage = start_stage
         self.stage_id_to_stage_map: dict[str, Stage] = {}
@@ -82,7 +100,10 @@ class Workflow:
         # check that at least one stage leads to "finish"
         child_stage_ids = set()
         for stage in self.stage_id_to_stage_map.values():
-            child_stage_ids.update(set(stage.next_stages))
+            if stage.next_stage:
+                child_stage_ids.add(stage.next_stage)
+            for transition in stage.next_stages or []:
+                child_stage_ids.add(transition.to_stage)
         if "finish" not in child_stage_ids:
             raise AssertionError(
                 "At least one stage must lead to the 'finish' stage, but this is not the case."

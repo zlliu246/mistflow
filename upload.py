@@ -11,7 +11,7 @@ new_version = f'{a}.{b}.{x}'
 text = re.sub(old_version, new_version, text)
 
 with open('pyproject.toml', 'w') as f:
-    f.write(text)    
+    f.write(text)
 
 commands = [
     'rm -rf ./dist',

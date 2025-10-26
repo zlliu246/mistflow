@@ -13,19 +13,19 @@ workflow.add_stage(
         get_stage_input=lambda context: {
             "number": context["wf_input"]["magic_number"]
         },
-        next_stages=["add100_to_number"],
+        next_stage="add100"
     )
 )
 
 workflow.add_stage(
     Stage(
-        stage_id="add100_to_number",
+        stage_id="add100",
         description="add 100 to number lol",
         task_path="tasks.test.add100",
         get_stage_input=lambda context: {
             "number": context["stage_output"]["square_number"]["squared_number"]
         },
-        next_stages=["finish"],
+        next_stage="finish",
     )
 )
 
