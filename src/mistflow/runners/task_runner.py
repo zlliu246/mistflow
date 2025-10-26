@@ -3,6 +3,8 @@ import importlib
 from pathlib import Path
 import logging 
 
+from mistflow.utils.pip_installer import pip_install
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO)
@@ -14,11 +16,14 @@ class TaskRunner:
         self.models_module = self.import_lib("models")
 
     def install_dependencies(self):
-        path = Path("/".join(self.path_segments))
-        req_path = path / "requirements.txt"
-        import pip
-        pip.main(["install", "pydantic"])
-        pip.main(["install", "-r", str(req_path), "-qqq"])
+        try:
+            path = Path("/".join(self.path_segments))
+            req_path = path / "requirements.txt"
+            pip_install("pydantic")
+            if req_path.exists():
+                pip_install("-r", str(req_path), "-qqq")
+        except Exception as e:
+            print(str(e))
 
     def run(
         self, 

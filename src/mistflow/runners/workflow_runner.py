@@ -2,6 +2,8 @@ import importlib
 from types import ModuleType
 import logging
 
+from mistflow.runners.task_runner import TaskRunner
+
 logger = logging.getLogger(__name__)
 
 class WorkflowRunner:
@@ -21,7 +23,9 @@ class WorkflowRunner:
         return importlib.import_module(import_path)
 
     def install_dependencies(self) -> None:
-        pass
+        for stage in self.main_module.workflow.stage_id_to_stage_map.values():
+            task_runner = TaskRunner(stage.task_path)
+            task_runner.install_dependencies()
 
     def run(self) -> None:
         inp: "Input" = self.models_module.Input.model_validate_json(self.input_json)

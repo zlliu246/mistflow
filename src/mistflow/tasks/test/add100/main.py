@@ -7,5 +7,5 @@ class Main:
         )
     
 """
-python3 -m mistflow task run tasks.test.add100 '{"number": 6}'
+python3 -m mistflow task run mistflow.tasks.test.add100 '{"number": 6}'
 """

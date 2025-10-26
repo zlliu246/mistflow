@@ -8,5 +8,5 @@ class Main:
 
 
 """
-python3 -m mistflow stage run stages.test.square '{"number": 5}'
+python3 -m mistflow task run mistflow.tasks.test.square '{"number": 5}'
 """

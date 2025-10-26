@@ -1,5 +1,4 @@
-from typing import Any
-from mistflow.workflow import Workflow, Stage, Transition
+from mistflow import Workflow, Stage, Transition
 
 workflow = Workflow(
     name="number_magic2",
@@ -13,14 +12,14 @@ workflow.add_stage(
     Stage(
         stage_id="square",
         description="square the number lol",
-        task_path="tasks.test.square",
+        task_path="mistflow.tasks.test.square",
         get_stage_input=lambda context: {
             "number": (
                 context.get("stage_output", {}).get("add100", {}).get("new_number")
                 or context["wf_input"]["start_number"]
             )
         },
-        next_stages=[
+        transitions=[
             Transition(
                 condition=lambda context: context["stage_output"]["square"]["squared_number"] < 1000000,
                 to_stage="add100", 
@@ -34,11 +33,11 @@ workflow.add_stage(
     Stage(
         stage_id="add100",
         description="add 100 to number lol",
-        task_path="tasks.test.add100",
+        task_path="mistflow.tasks.test.add100",
         get_stage_input=lambda context: {
             "number": context["stage_output"]["square"]["squared_number"]
         },
-        next_stages=[
+        transitions=[
             Transition(
                 condition=lambda context: context["stage_output"]["add100"]["new_number"] < 1000000,
                 to_stage="square",
@@ -49,5 +48,5 @@ workflow.add_stage(
 )
 
 """
-python3 -m mistflow workflow run workflows.test.number_magic2 '{"start_number": 3}'
+python3 -m mistflow workflow run mistflow.workflows.test.number_magic2 '{"start_number": 3}'
 """
